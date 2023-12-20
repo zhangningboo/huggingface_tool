@@ -64,10 +64,9 @@ def download(opt: argparse.Namespace):
             model_dir = MODEL_SAVE_PATH.joinpath(org).joinpath(model_version)
             model_dir.mkdir(exist_ok=True, parents=True)
             token = check_token(opt.token)
-            if token is None:
-                cmd = ["huggingface-cli", "download", "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
-            else:
-                cmd = ["huggingface-cli", "download", "--token", token, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
+            cmd = ["huggingface-cli", "download", "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
+            if token is not None:
+                cmd = [*cmd, "--token", token]
             success = download_model(cmd, retry_times=retry_times)
             save_download_res(f"{model_name}: {success}")
     except Exception as e:
