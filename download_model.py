@@ -3,6 +3,7 @@ import os
 import subprocess
 from pathlib import Path
 import argparse
+import timeit
 
 
 """
@@ -20,6 +21,7 @@ def process_args():
                     epilog='Text at the bottom of help')
     parser.add_argument('-t', '--token', type=str, help='Set a token: https://huggingface.co/settings/tokens')
     parser.add_argument('-m', '--model', nargs='+', required=True, help='Model name, for example: microsoft/phi-2')
+    parser.add_argument('-l', '--loop', type=int, default=42, help='Detault retry times.')
     return parser.parse_args()
 
 
@@ -35,26 +37,45 @@ def check_token(token: str):
     return token
 
 
+def download_model(cmd: list, retry_times=0) -> bool:
+    success = False
+    retry_times += 1
+    for _ in range(retry_times):
+        exec_res = subprocess.run(cmd)
+        if exec_res.returncode == 0:
+            success = True
+            break
+    return success
+
+
+def save_download_res(content: str):
+    res_file = MODEL_SAVE_PATH.joinpath('result.txt')
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    with open(res_file, mode='a+') as f:
+        f.writelines(f"[{timestamp}] {content}\n")
+
+
 def download(opt: argparse.Namespace):
     try:
         subprocess.run(["pip", "install", "-U", "huggingface_hub"])
+        retry_times = opt.loop
         for model_name in opt.model:
             org, model_version = model_name.split("/")
             model_dir = MODEL_SAVE_PATH.joinpath(org).joinpath(model_version)
             model_dir.mkdir(exist_ok=True, parents=True)
             token = check_token(opt.token)
             if token is None:
-                subprocess.run(["huggingface-cli", "download", "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()])
+                cmd = ["huggingface-cli", "download", "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
             else:
-                subprocess.run(["huggingface-cli", "download", "--token", token, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()])
+                cmd = ["huggingface-cli", "download", "--token", token, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
+            success = download_model(cmd, retry_times=retry_times)
+            save_download_res(f"{model_name}: {success}")
     except Exception as e:
         print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     opt = process_args()
     print(f"{opt.token = }")
     print(f"{opt.model = }")
     download(opt)
-
-
-# huggingface-cli download --token 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 --resume-download --local-dir-use-symlinks False Qwen/Qwen-72B-Chat --local-dir Qwen-72B-Chat
