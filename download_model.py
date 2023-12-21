@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 import argparse
 import timeit
+import time
 
 
 """
@@ -22,6 +23,7 @@ def process_args():
     parser.add_argument('-t', '--token', type=str, help='Set a token: https://huggingface.co/settings/tokens')
     parser.add_argument('-m', '--model', nargs='+', required=True, help='Model name, for example: microsoft/phi-2')
     parser.add_argument('-l', '--loop', type=int, default=42, help='Detault retry times.')
+    parser.add_argument('--type', type=str, default='model', help='Detault retry times.')
     return parser.parse_args()
 
 
@@ -64,7 +66,7 @@ def download(opt: argparse.Namespace):
             model_dir = MODEL_SAVE_PATH.joinpath(org).joinpath(model_version)
             model_dir.mkdir(exist_ok=True, parents=True)
             token = check_token(opt.token)
-            cmd = ["huggingface-cli", "download", "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
+            cmd = ["huggingface-cli", "download", "--repo-type", opt.type, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
             if token is not None:
                 cmd = [*cmd, "--token", token]
             success = download_model(cmd, retry_times=retry_times)
