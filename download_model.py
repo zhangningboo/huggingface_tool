@@ -39,7 +39,7 @@ def check_token(token: str):
     return token
 
 
-def download_model(cmd: list, retry_times=0) -> bool:
+def download_project(cmd: list, retry_times=0) -> bool:
     success = False
     retry_times += 1
     for _ in range(retry_times):
@@ -71,8 +71,8 @@ def download(opt: argparse.Namespace):
             cmd = ["huggingface-cli", "download", "--repo-type", project_type, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
             if token is not None:
                 cmd = [*cmd, "--token", token]
-            success = download_model(cmd, retry_times=retry_times)
-            save_download_res(f"{model_name}: {success}")
+            success = download_project(cmd, retry_times=retry_times)
+            save_download_res(f"[{project_type.upper()}] {project_name}: {success}")
     except Exception as e:
         print(f"Error: {e}")
 
