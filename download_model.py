@@ -21,9 +21,9 @@ def process_args():
                     description='Use hf-mirror.com as proxy',
                     epilog='Text at the bottom of help')
     parser.add_argument('-t', '--token', type=str, help='Set a token: https://huggingface.co/settings/tokens')
-    parser.add_argument('-m', '--model', nargs='+', required=True, help='Model name, for example: microsoft/phi-2')
+    parser.add_argument('-p', '--project', nargs='+', required=True, help='Project name, for example: microsoft/phi-2 Stevross/mmlu')
     parser.add_argument('-l', '--loop', type=int, default=42, help='Detault retry times.')
-    parser.add_argument('--type', type=str, default='model', help='Detault retry times.')
+    parser.add_argument('--type', type=str, default='model', choices=['model', 'dataset', 'space'], help='Detault retry times.')
     return parser.parse_args()
 
 
@@ -61,12 +61,14 @@ def download(opt: argparse.Namespace):
     try:
         subprocess.run(["pip", "install", "-U", "huggingface_hub"])
         retry_times = opt.loop
-        for model_name in opt.model:
-            org, model_version = model_name.split("/")
-            model_dir = MODEL_SAVE_PATH.joinpath(org).joinpath(model_version)
-            model_dir.mkdir(exist_ok=True, parents=True)
+        project_type = opt.type
+        dst_path = MODEL_SAVE_PATH.joinpath(project_type)
+        for project_name in opt.project:
+            org, version = project_name.split("/")
+            project_path = dst_path.joinpath(org).joinpath(version)
+            project_path.mkdir(exist_ok=True, parents=True)
             token = check_token(opt.token)
-            cmd = ["huggingface-cli", "download", "--repo-type", opt.type, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
+            cmd = ["huggingface-cli", "download", "--repo-type", project_type, "--resume-download", "--local-dir-use-symlinks", "False", model_name, "--local-dir", model_dir.absolute().as_posix()]
             if token is not None:
                 cmd = [*cmd, "--token", token]
             success = download_model(cmd, retry_times=retry_times)
@@ -78,5 +80,5 @@ def download(opt: argparse.Namespace):
 if __name__ == "__main__":
     opt = process_args()
     print(f"{opt.token = }")
-    print(f"{opt.model = }")
+    print(f"{opt.project = }")
     download(opt)
