@@ -64,7 +64,10 @@ def download(opt: argparse.Namespace):
         project_type = opt.type
         dst_path = MODEL_SAVE_PATH.joinpath(project_type)
         for project_name in opt.project:
-            org, version = project_name.split("/")
+            if "/" in project_name:
+                org, version = project_name.split("/")
+            else:
+                org, version = 'model', project_name
             project_path = dst_path.joinpath(org).joinpath(version)
             project_path.mkdir(exist_ok=True, parents=True)
             token = check_token(opt.token)
