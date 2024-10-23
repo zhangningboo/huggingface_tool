@@ -1,2 +1,6 @@
 .vscode
 .idea
+.token
+dataset
+model
+result.txt

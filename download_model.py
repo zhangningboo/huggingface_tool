@@ -23,6 +23,7 @@ def process_args():
     parser.add_argument('-t', '--token', type=str, help='Set a token: https://huggingface.co/settings/tokens')
     parser.add_argument('-p', '--project', nargs='+', required=True, help='Project name, for example: microsoft/phi-2 Stevross/mmlu')
     parser.add_argument('-l', '--loop', type=int, default=42, help='Detault retry times.')
+    parser.add_argument('-v', '--revision', type=str, default=None, help='Git Version id')
     parser.add_argument('--type', type=str, default='model', choices=['model', 'dataset', 'space'], help='Detault retry times.')
     return parser.parse_args()
 
@@ -74,6 +75,8 @@ def download(opt: argparse.Namespace):
             cmd = ["huggingface-cli", "download", "--repo-type", project_type, "--resume-download", "--local-dir-use-symlinks", "False", project_name, "--local-dir", project_path.absolute().as_posix()]
             if token is not None:
                 cmd = [*cmd, "--token", token]
+            if opt.revision is not None:
+                cmd = [*cmd, "--revision", opt.revision]
             success = download_project(cmd, retry_times=retry_times)
             save_download_res(f"[{project_type.upper()}] {project_name}: {success}")
     except Exception as e:
