@@ -4,3 +4,7 @@ model
 dataset
 .token
 result.txt
+.token
+dataset
+model
+result.txt
