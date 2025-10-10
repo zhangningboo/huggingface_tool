@@ -71,7 +71,7 @@ def download(opt: argparse.Namespace):
             project_path = dst_path.joinpath(org).joinpath(version)
             project_path.mkdir(exist_ok=True, parents=True)
             token = check_token(opt.token)
-            cmd = ["huggingface-cli", "download", "--repo-type", project_type, "--resume-download", "--local-dir-use-symlinks", "False", project_name, "--local-dir", project_path.absolute().as_posix()]
+            cmd = ["huggingface-cli", "download", "--repo-type", project_type, "--local-dir-use-symlinks", "False", project_name, "--local-dir", project_path.absolute().as_posix()]
             if token is not None:
                 cmd = [*cmd, "--token", token]
             success = download_project(cmd, retry_times=retry_times)

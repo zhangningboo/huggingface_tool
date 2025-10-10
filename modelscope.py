@@ -6,10 +6,7 @@ import argparse
 import timeit
 import time
 
-
-os.environ['HF_ENDPOINT'] = rf"https://hf-mirror.com"
 MODEL_SAVE_PATH = Path(os.path.realpath(__file__)).parent
-
 
 def process_args():
     parser = argparse.ArgumentParser(
